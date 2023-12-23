@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package maintenance;
 
-option go_package = "https://github.com/Servant-22/SchedulingService.git";
+option go_package = "github.com/Servant-22/SchedulingService.pb";
 
 service MaintenanceService {
     rpc ScheduleAppointment (AppointmentRequest) returns (AppointmentResponse);
