@@ -30,7 +30,7 @@ func newServer(db *sql.DB) *maintenanceServer {
 }
 
 func (s *maintenanceServer) ScheduleAppointment(ctx context.Context, req *pb.AppointmentRequest) (*pb.AppointmentResponse, error) {
-	// Controleer of de gebruiker al een geplande afspraak heeft
+	// Controleert of de gebruiker al een geplande afspraak heeft
 	var existingAppointmentCount int
 	err := s.db.QueryRow("SELECT COUNT(*) FROM appointments WHERE user_id = $1", req.UserId).Scan(&existingAppointmentCount)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *maintenanceServer) ScheduleAppointment(ctx context.Context, req *pb.App
 }
 
 func main() {
-	db := connectDB() // Zorg ervoor dat u een echte databaseverbinding implementeert
+	db := connectDB() // databaseverbinding implementatie
 	defer db.Close()
 
 	// Start de gRPC server in een goroutine
@@ -73,9 +73,9 @@ func main() {
 		}
 	}()
 
-	// Configureer en start de HTTP server (Gin)
+	// de HTTP server (Gin)
 	r := gin.Default()
-	grpcClient := client.NewGrpcClient("localhost:50051") // Vervang door het werkelijke gRPC-serveradres
+	grpcClient := client.NewGrpcClient("localhost:50051") // gRPC-serveradres
 
 	r.POST("/schedule-appointment", func(c *gin.Context) {
 		userId := c.PostForm("userId")
@@ -91,5 +91,5 @@ func main() {
 		c.JSON(http.StatusOK, response)
 	})
 
-	r.Run(":9090") // Luister en serveer op 0.0.0.0:8080
+	r.Run(":9090") // Luistert en serveert op 0.0.0.0:9090
 }
