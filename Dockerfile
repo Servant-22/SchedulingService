@@ -27,6 +27,8 @@ COPY --from=builder /app/scheduling-service .
 
 # Exposeer de poort die door je applicatie wordt gebruikt.
 EXPOSE 50051
+EXPOSE 9090
+
 
 # Voer de binaire uitvoer uit.
 CMD ["./scheduling-service"]

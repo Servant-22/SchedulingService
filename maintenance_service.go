@@ -1,6 +1,12 @@
 package main
 
 import (
+	"net/http"
+
+	"github.com/Servant-22/SchedulingService/client"
+
+	"github.com/gin-gonic/gin"
+
 	"context"
 	"database/sql"
 	"fmt"
@@ -51,16 +57,39 @@ func (s *maintenanceServer) ScheduleAppointment(ctx context.Context, req *pb.App
 }
 
 func main() {
-	db := connectDB()
+	db := connectDB() // Zorg ervoor dat u een echte databaseverbinding implementeert
 	defer db.Close()
 
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	grpcServer := grpc.NewServer()
-	pb.RegisterMaintenanceServiceServer(grpcServer, newServer(db))
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	// Start de gRPC server in een goroutine
+	go func() {
+		lis, err := net.Listen("tcp", ":50051")
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+		grpcServer := grpc.NewServer()
+		pb.RegisterMaintenanceServiceServer(grpcServer, newServer(db))
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
+
+	// Configureer en start de HTTP server (Gin)
+	r := gin.Default()
+	grpcClient := client.NewGrpcClient("localhost:50051") // Vervang door het werkelijke gRPC-serveradres
+
+	r.POST("/schedule-appointment", func(c *gin.Context) {
+		userId := c.PostForm("userId")
+		taskDescription := c.PostForm("taskDescription")
+		preferredTime := c.PostForm("preferredTime")
+
+		response, err := grpcClient.ScheduleAppointment(userId, taskDescription, preferredTime)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	})
+
+	r.Run(":9090") // Luister en serveer op 0.0.0.0:8080
 }
